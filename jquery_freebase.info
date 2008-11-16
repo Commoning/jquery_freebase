@@ -1,0 +1,4 @@
+name = jquery_freebase
+description = Enables the freebase jquery plugin
+dependencies[] = jq
+core = 6.x

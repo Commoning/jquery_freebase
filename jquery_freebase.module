@@ -1,0 +1,28 @@
+<?php
+
+function jquery_freebase_jq($op, $plugin = NULL) {
+  switch ($op) {
+    case 'info':
+      return array(
+          'freebase' => array(
+              'name' => 'Freebase',
+              'description' => t('This is the Freebase jQuery plugin. It can enhance your forms.'),
+                'version' => 'r0.4 // 2008-06-18 // jQuery 1.2.6',
+                'url' => 'http://code.google.com/p/freebase-suggest',
+              'files' => array(
+                  'js' => array(
+                      drupal_get_path('module', 'jquery_freebase') . '/jquery.freebase.suggest/dist/freebase.suggest.js',
+                  ),
+              ),
+          ),
+      );
+    case 'add':
+      // any additional processing required when adding a plugin to a page.
+      switch ($plugin) {
+        case 'freebase':
+          drupal_add_css(drupal_get_path('module', 'jquery_freebase') . '/jquery.freebase.suggest/dist/css/freebase-controls.css'); 
+          break;
+      }
+    break;
+  }
+}
