@@ -150,8 +150,8 @@ function jquery_freebase_add_scripts() {
   // The important additions are the javascript and jquery lines here.
   static $scripts_added;
   if (empty($scripts_added)) {
-    drupal_add_js(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.js', 'module');
-#    drupal_add_js(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.min.js', 'module');
+    #drupal_add_js(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.js', 'module');
+    drupal_add_js(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.min.js', 'module');
     drupal_add_css(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.min.css');
     $scripts_added = TRUE;
   }
@@ -267,7 +267,7 @@ function jquery_freebase_textfield_process_wrapper($element, $edit, $form_state,
   ";
   drupal_add_js($attachment_script, 'inline');
   // js is now added.
-  
+
   return $element;
 }
 /**

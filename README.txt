@@ -16,6 +16,8 @@ from the Freebase database.
 Requirements
 ============
 
+[jquery_update.module](http://drupal.org/project/jquery_update)
+
 jquery.freebase.suggest library files from 
 [Freebase Suggest project](http://www.freebase.com/docs/suggest)
 
@@ -39,17 +41,24 @@ Installation
 2.  Check the 
     [freebase suggest project page](http://www.freebase.com/docs/suggest)
     for the latest versions of the freebase suggest library files.
-    At the time of writing, the version is 1.2.1, so
+    At the time of writing, the version is 1.2.1, so:
     Download 
-    http://freebaselibs.com/static/suggest/1.2.1/suggest.min.css
-    http://freebaselibs.com/static/suggest/1.2.1/suggest.min.js
+      http://freebaselibs.com/static/suggest/1.2.1/suggest.min.css
+      http://freebaselibs.com/static/suggest/1.2.1/suggest.min.js
     to the Drupal 'sites/all/libraries' directory into a new folder called 
     'freebase_suggest'.
     (Make a 'libraries' folder if it doesn't exist)
-
+    
+    ~
+      mkdir sites/all/libraries/freebase_suggest
+      cd sites/all/libraries/freebase_suggest
+      wget  http://freebaselibs.com/static/suggest/1.2.1/suggest.min.css
+      wget http://freebaselibs.com/static/suggest/1.2.1/suggest.min.js    
+    ~
+    
 3.  Save them so they are available as 
-    sites/all/libraries/freebase_suggest/suggest.min.js
-    sites/all/libraries/freebase_suggest/suggest.min.css
+      sites/all/libraries/freebase_suggest/suggest.min.js
+      sites/all/libraries/freebase_suggest/suggest.min.css
     
     Placing the files in this folder will make them compatible with 
     [Libraries API](http://drupal.org/project/libraries) and the Drupal7
@@ -62,7 +71,11 @@ Installation
     Current version of suggest (1.2.1) uses jquery (1.3.2) so an install
     of jQuery Update 6.x-2.x was needed.
 
-6. Enable jquery_freebase under admin/build/modules
+5.  Enable jquery_freebase under admin/build/modules
+
+6.  If you CHECK YOUR SITE STATUS REPORT at /admin/reports/status
+    it will confirm if the libraries are loaded properly.
+    Important: Confirm that jquery is at version 1.3.2 or higher.
 
 Usage
 =====
@@ -125,6 +138,7 @@ JQP Usage
 jq.module is another, more modern jquery library handler
 This module makes its libraries accessible through its handler.
 Optionally download that module and see its docs.
+http://drupal.org/project/jq
 
 Example code: (suggest version 1.2.1)
 <pre>
@@ -138,6 +152,16 @@ drupal_add_js(
   'inline'
 );
 </pre>
+
+
+Troubleshooting
+=======
+If you get 'Searching' but no result, or the browser error
+"Uncaught TypeError: Object function ... has no method 'isArray'"
+This means you do not have the correct version of jquery. 
+Check that Jquery Update is correctly installed!
+You NEED jquery_update-6.x-2.x not jquery_update-6.x-1.x
+This means we get jquery.js 1.3.2
 
 Support
 =======
