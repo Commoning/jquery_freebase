@@ -1,4 +1,6 @@
-name = jquery_freebase
-description = Enables the freebase jquery plugin
-dependencies[] = jq
+name = jQuery Freebase
+description = Enables the Freebase jQuery plugin that provides autocomplete suggestions for text fields
+
+dependencies[] = jquery_update
+
 core = 6.x

@@ -1,28 +1,301 @@
 <?php
 
+#define('JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH', drupal_get_path('module', 'jquery_freebase') . '/freebase_suggest');
+define('JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH', 'sites/all/libraries/freebase_suggest');
+
+
+/**
+ * Implementation of hook_help().
+ */
+function jquery_freebase_help($path, $arg) {
+  switch ($path) {
+    case 'admin/modules#description':
+      return t('Adds autocomplete suggestions to CCK textfields based on topic sets from the Freebase database.');
+    case 'admin/help#jquery_freebase':
+      $readme = file_get_contents(drupal_get_path('module', 'jquery_freebase') . '/README.txt');
+      $readme = filter_filter('process' , 1, 0, $readme); // newlines
+      $readme = filter_filter('process' , 2, 0, $readme); // urls
+      // Create instructions to run.
+      $fix_script = "";
+      $realpath = realpath('.') . '/'. JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH;
+      if (! is_readable(dirname($realpath))) {
+        $fix_script .= "mkdir '" . dirname($realpath) . "' ;\n";
+      }
+      if (! is_readable($realpath)) {
+        $fix_script .= "mkdir '$realpath' ; \n";
+      }
+      $fix_script .= "wget -P '$realpath' http://freebaselibs.com/static/suggest/1.2.1/suggest.min.js ;\n";
+      $fix_script .= "wget -P '$realpath' http://freebaselibs.com/static/suggest/1.2.1/suggest.min.css ;\n";
+      $readme .= "<h3>Suggested commands to run to install: </h3><pre>$fix_script</pre>";
+      return $readme;
+  }
+}
+
+/**
+ * Implementation of hook_requirements().
+ */
+function jquery_freebase_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+  
+  if ($phase == 'runtime') {
+    // Check library availability
+    if (is_readable(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.min.js')) {
+      $requirements['freebase_suggest'] = array(
+        'title' => $t('jQuery Freebase Suggest'),
+        'value' => $t(
+          'Freebase Suggest library is available in !library_folder', 
+          array('!library_folder' => JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH)
+        )
+      );
+    }
+    else {
+      $requirements['freebase_suggest'] = array(
+        'title' => $t('jQuery Freebase Suggest'),
+        'value' => $t('Freebase Suggest library is not available in !library_folder', array('!library_folder' => JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH)),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => $t('
+          See the README or <a href="@help_url">help</a> for install instructions. 
+          Download the required libraries from 
+          <a href="@freebase_url">the freebase project</a>.', 
+          array(
+            '@freebase_url' => 'http://www.freebase.com/docs/suggest',
+            '@help_url' => url('admin/help/jquery_freebase'),
+          )
+        ),
+      );
+    }
+  }
+
+  return $requirements;
+}
+
+
+/**
+ * Implementation of hook_jq() library manager
+ * 
+ * Support for the (rare) jq.module
+ * 
+ */
 function jquery_freebase_jq($op, $plugin = NULL) {
   switch ($op) {
     case 'info':
       return array(
-          'freebase' => array(
-              'name' => 'Freebase',
-              'description' => t('This is the Freebase jQuery plugin. It can enhance your forms.'),
-                'version' => 'r0.4 // 2008-06-18 // jQuery 1.2.6',
-                'url' => 'http://code.google.com/p/freebase-suggest',
-              'files' => array(
-                  'js' => array(
-                      drupal_get_path('module', 'jquery_freebase') . '/jquery.freebase.suggest/dist/freebase.suggest.js',
-                  ),
-              ),
+        'freebase_suggest' => array(
+          'name' => 'Freebase Suggest',
+          'description' => t('This is the Freebase jQuery plugin. It can enhance your forms.'),
+            'version' => 'suggest 1.2.1 // 2009 // jQuery 1.3.2',
+            'url' => 'http://www.freebase.com/docs/suggest',
+          'files' => array(
+            'js' => array(
+              JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.min.js',
+            ),
           ),
+        ),
       );
     case 'add':
       // any additional processing required when adding a plugin to a page.
       switch ($plugin) {
-        case 'freebase':
-          drupal_add_css(drupal_get_path('module', 'jquery_freebase') . '/jquery.freebase.suggest/dist/css/freebase-controls.css'); 
+        case 'freebase_suggest':
+          drupal_add_css(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.min.css');
           break;
       }
     break;
   }
+}
+
+/**
+ * Implementation of hook_jqp() library manager.
+ * 
+ * http://drupal.org/project/jqp
+ * Declare the files we publish, for management through the jqp IU.
+ */
+function jquery_freebase_jqp() {
+  $libraries['freebase_suggest'] = array(
+    'name' => 'Freebase Suggest',
+    'description' => 'Provides Autocomplete suggestions from Freebase topics.',
+    'project_url' => 'http://www.freebase.com/docs/suggest',
+    'scripts' => array(
+      array(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.min.js'), // This will have key 0, so it is the default version
+      '1.2.1' => array(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.min.js'),
+      '1.2.1-dev' => array(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.js'),
+    ),
+    'stylesheets' => array(
+      array(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.min.css'),
+      '1.2.1' => array(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.min.css'),
+      '1.2.1-dev' => array(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.css'),
+    ),
+  );
+  return $libraries;
+}
+
+/**
+ * Implementation of hook_library()
+ * 
+ * http://api.drupal.org/api/function/hook_library/7
+ */
+function jquery_freebase_library() {
+}
+
+
+/**
+ * Load the javascript libraries if needed.
+ * 
+ * This can be called directly by any module or function that wants to use the
+ * suggest function.
+ * This is for when NONE of the (currently unstable) library managers are
+ * running.
+ */
+function jquery_freebase_add_scripts() {
+  // The important additions are the javascript and jquery lines here.
+  static $scripts_added;
+  if (empty($scripts_added)) {
+    drupal_add_js(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.js', 'module');
+#    drupal_add_js(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.min.js', 'module');
+    drupal_add_css(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.min.css');
+    $scripts_added = TRUE;
+  }
+}
+
+/**
+ * Implimentation of hook_widget_info() for CCK
+ * 
+ * Declare that we provide an alternative widget for text fields.
+ */
+function jquery_freebase_widget_info() {
+  return array(
+    'jquery_freebase_autocomplete' => array(
+      'label' => t('Text field with autocomplete suggestions from freebase'),
+      'field types' => array('text'),
+      'multiple values' => CONTENT_HANDLE_CORE,
+      'callbacks' => array(
+        'default value' => CONTENT_CALLBACK_DEFAULT,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implimentation of hook_widget_settings() for CCK
+ * 
+ * Additions to the "Manage Field" screen under content types. Configures
+ * specific settings for this field instance.
+ * 
+ * Edit and save the 'autocomplete_arguments' parameter.
+ */
+function jquery_freebase_widget_settings($op, $widget) {
+  switch ($op) {
+    case 'form':
+      $form = array();
+      $autocomplete_arguments = isset($widget['autocomplete_arguments']) ? $widget['autocomplete_arguments'] : '';
+      if ($widget['type'] == 'jquery_freebase_autocomplete') {
+        $form['autocomplete_arguments'] = array(
+          '#type' => 'textfield',
+          '#title' => t('Autocomplete arguments'),
+          '#default_value' => $autocomplete_arguments,
+          '#description' => t('
+            Enter some instructions for filtering the freebase results, 
+            as per the <a href="http://www.freebase.com/docs/suggest">documentation</a>. 
+            This will restrict the results from freebase that the autocomplete 
+            search will return. 
+            Must be in Freebase topic type notation (JSON), 
+            eg <code>{"type":"/location/country"}</code> 
+            or <code>{"type":"/people/person"}</code>
+            , <code>{"type":["/film/production_company", "/book/publishing_company"]}</code>. 
+          '),
+        );
+      }
+      else {
+        $form['autocomplete_arguments'] = array(
+          '#type' => 'hidden', 
+          '#value' => $autocomplete_arguments
+        );
+      }
+      return $form;
+
+    case 'save':
+      return array('autocomplete_arguments');
+  }
+}
+
+/**
+ * Implimentation of hook_widget() for CCK
+ * 
+ * Defines how the data entry field on node edit forms works.
+ * 
+ * It's MOSTLY like a textfield, just with a bit of extra javascript when it
+ * gets rendered.
+ */
+function jquery_freebase_widget(&$form, &$form_state, $field, $items, $delta = 0) {
+  switch ($field['widget']['type']) {
+    case 'jquery_freebase_autocomplete':
+      $element = array(
+        '#type' => 'text_textfield',
+        '#default_value' => isset($items[$delta]) ? $items[$delta] : NULL,
+        '#process' => array('jquery_freebase_textfield_process_wrapper'),
+      );
+      break;
+  }
+  return $element;
+}
+
+/**
+ * Add the js additions to an otherwise normal textfield.
+ * 
+ * Callback from jquery_freebase_widget(), the real widget renderer for CCK
+ * 
+ * Prepares the data entry field on node edit forms as a FAPI element
+ * 
+ * Based on example from noderefcreate_autocomplete_process()
+ */
+function jquery_freebase_textfield_process_wrapper($element, $edit, $form_state, $form) {
+  // Really, avoid doing any more than we have to.
+  // Just use the textfield routine to do all the weird work.
+  $element = text_textfield_process($element, $edit, $form_state, $form);
+
+  jquery_freebase_add_scripts();
+
+  // Add js to invoke the jquery attachment on this element
+  $element_id = $element['#id'] . "-value";
+  $field = $form['#field_info'][$element['#field_name']];
+  $widget = $field['widget'];
+  $search_arguments = $widget['autocomplete_arguments'];
+  $attachment_script = "
+    Drupal.behaviors.freebase_autocomplete = function (context) {
+      $('#{$element_id}').suggest($search_arguments);
+    }
+  ";
+  drupal_add_js($attachment_script, 'inline');
+  // js is now added.
+  
+  return $element;
+}
+/**
+ * A form #process callback
+ * 
+ * Adding a #process attribute to your form elements will make this happen
+ */
+function jquery_freebase_attach_autocomplete_suggest($element, $edit, $form_state, $form) {
+ /* 
+    Invoke this when making a FAPI form element by adding:
+    $form['fieldname'] = array(   
+      '#type' => 'textfield',
+      '#process' => array('jquery_freebase_attach_autocomplete_suggest'),
+      '#freebase_suggest_arguments' => "{'type': '/freebase/type_profile'}"
+    )
+    
+  */
+
+  // Add js to invoke the jquery attachment on this element
+  $element_id = $element['#id'];
+  $search_arguments = $element['#freebase_suggest_arguments'];
+  $attachment_script = "
+    Drupal.behaviors.freebase_autocomplete = function (context) {
+      $('#{$element_id}').suggest($search_arguments);
+    }
+  ";
+  jquery_freebase_add_scripts();
+  drupal_add_js($attachment_script, 'inline');
+  // js is now added.
+  return $element;
 }
