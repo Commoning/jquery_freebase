@@ -1,6 +1,6 @@
 name = jQuery Freebase
 description = Enables the Freebase jQuery plugin that provides autocomplete suggestions for text fields
+package = Freebase
+core = 7.x
 
-dependencies[] = jquery_update
-
-core = 6.x
+dependencies[] = libraries

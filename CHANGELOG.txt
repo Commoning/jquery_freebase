@@ -1,3 +1,9 @@
+2011-11 dozymoe
+Removed support for jq and jqp contrib, not available in D7.
+Added dependence on libraries contrib.
+Convert CCK field widget implementation to D7 core field.
+Added package name.
+
 2010-05 dman
 Total rewrite - added real CCK field support so it does what it promises.
 Module now provides a CCK text field widget that uses freebase suggest.
