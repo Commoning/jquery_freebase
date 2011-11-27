@@ -2,7 +2,7 @@
 Removed support for jq and jqp contrib, not available in D7.
 Added dependence on libraries contrib.
 Convert CCK field widget implementation to D7 core field.
-Added package name.
+Added package description.
 
 2010-05 dman
 Total rewrite - added real CCK field support so it does what it promises.
