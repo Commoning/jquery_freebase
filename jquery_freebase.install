@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the jquery_freebase module.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function jquery_freebase_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+
+  if ($phase == 'runtime') {
+    // Check library availability.
+    if (($library = libraries_detect('freebase_suggest')) && !empty($library['installed'])) {
+      $path = $library['library path'];
+      $version = $library['version'];
+
+      $requirements['freebase_suggest'] = array(
+        'title' => $t('Freebase Suggest javascript library'),
+        'value' => $t(
+          '@version (<em>@path</em>)',
+          array('@path' => $path, '@version' => $version)
+        ),
+      );
+    }
+    else {
+      $requirements['freebase_suggest'] = array(
+        'title' => $t('Freebase Suggest javascript library'),
+        'value' => $t('Missing files'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => $t(
+          'See the README.txt file that comes with jquery_freebase module package, or <a href="@help_url">help</a> for install instructions.',
+          array('@help_url' => url('admin/help/jquery_freebase')
+          )
+        ),
+      );
+    }
+  }
+
+  return $requirements;
+}

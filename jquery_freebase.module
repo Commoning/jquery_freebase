@@ -31,50 +31,11 @@ function jquery_freebase_help($path, $arg) {
       if (! is_readable($realpath)) {
         $fix_script .= "mkdir '$realpath' ; \n";
       }
-      $fix_script .= "wget -P '$realpath' http://freebaselibs.com/static/suggest/1.2.1/suggest.min.js ;\n";
-      $fix_script .= "wget -P '$realpath' http://freebaselibs.com/static/suggest/1.2.1/suggest.min.css ;\n";
+      $fix_script .= "wget -P '$realpath' http://freebaselibs.com/static/suggest/1.3/suggest.min.js ;\n";
+      $fix_script .= "wget -P '$realpath' http://freebaselibs.com/static/suggest/1.3/suggest.min.css ;\n";
       $readme .= "<h3>Suggested commands to run to install: </h3><pre>$fix_script</pre>";
       return $readme;
   }
-}
-
-/**
- * Implements hook_requirements().
- */
-function jquery_freebase_requirements($phase) {
-  $requirements = array();
-  $t = get_t();
-
-  if ($phase == 'runtime') {
-    // Check library availability
-    if (is_readable(JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH . '/suggest.min.js')) {
-      $requirements['freebase_suggest'] = array(
-        'title' => $t('jQuery Freebase Suggest'),
-        'value' => $t(
-          'Freebase Suggest library is available in !library_folder',
-          array('!library_folder' => JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH)
-        ),
-      );
-    }
-    else {
-      $requirements['freebase_suggest'] = array(
-        'title' => $t('jQuery Freebase Suggest'),
-        'value' => $t('Freebase Suggest library is not available in !library_folder', array('!library_folder' => JQUERY_FREEBASE_SUGGEST_LIBRARY_PATH)),
-        'severity' => REQUIREMENT_ERROR,
-        'description' => $t('
-          See the README or <a href="@help_url">help</a> for install instructions.
-          Download the required libraries from
-          <a href="@freebase_url">the freebase project</a>.',
-          array(
-          '@freebase_url' => 'http://www.freebase.com/docs/suggest',
-          '@help_url' => url('admin/help/jquery_freebase'),
-        )
-        ),
-      );
-    }
-  }
-
-  return $requirements;
 }
 
 /**
@@ -88,7 +49,7 @@ function jquery_freebase_libraries_info() {
     'version arguments' => array(
       'file' => 'suggest.min.js',
       'lines' => 2000,
-      'pattern' => "/jQuery\.suggest\.version='(.*?)';/",
+      'pattern' => "/jQuery\.suggest\.version='Version:(.*?)';/",
     ),
     'files' => array(
       'css' => array(
@@ -205,22 +166,18 @@ function jquery_freebase_field_widget_form(&$form, &$form_state, $field, $instan
  */
 function jquery_freebase_attach_autocomplete_suggest($element, $form_state) {
   $element_id = $element['#id'];
-  $field_name = $element['#field_name'];
+  $search_arguments = $element['#freebase_suggest_arguments'];
+  $settings['jquery_freebase']['elements'][] = array(
+    'id' => "#{$element_id}",
+    'arguments' => $search_arguments,
+  );
 
   // Display UI hint that this element has autocomplete.
   $element['#attributes']['class'][] = 'form-autocomplete';
 
-  $search_arguments = $element['#freebase_suggest_arguments'];
-  $attachment_script = "
-    Drupal.behaviors.jquery_freebase_{$field_name} = {
-      attach: function (context, settings) {
-        jQuery('#{$element_id}', context).suggest($search_arguments);
-      }
-    }
-  ";
   jquery_freebase_load_library();
-  // jquery_freebase_add_scripts();
-  drupal_add_js($attachment_script, array('type' => 'inline', 'scope' => JS_DEFAULT));
-  // js is now added.
+  drupal_add_js(drupal_get_path('module', 'jquery_freebase') . '/jquery_freebase.js');
+  drupal_add_js($settings, 'setting');
+
   return $element;
 }
